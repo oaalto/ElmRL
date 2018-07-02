@@ -25,7 +25,7 @@ type alias Rectangle =
 
 
 type alias Layer =
-    { size : Rectangle
+    { bounds : Rectangle
     , tiles : Array Tile
     }
 
@@ -36,6 +36,12 @@ type alias Tile =
     }
 
 
+type alias Size =
+    { width : Int
+    , height : Int
+    }
+
+
 initialModel : Int -> Int -> Model
 initialModel width height =
     Model width height (Array.fromList [ initialLayer width height ])
@@ -43,11 +49,12 @@ initialModel width height =
 
 initialLayer : Int -> Int -> Layer
 initialLayer width height =
-    Layer initialSize (initialTiles width height)
+    Layer initialBounds
+        (initialTiles width height)
 
 
-initialSize : Rectangle
-initialSize =
+initialBounds : Rectangle
+initialBounds =
     Rectangle (Point 0 0) (Point 80 25)
 
 
@@ -71,21 +78,16 @@ emptyTiles width height =
     Array.repeat (width * height) emptyTile
 
 
-emptyLayer : Int -> Int -> Layer
-emptyLayer width height =
-    Layer (getSize width height) (emptyTiles width height)
+emptyLayer : Size -> Layer
+emptyLayer { width, height } =
+    Layer (getBounds width height) (emptyTiles width height)
 
 
-getSize : Int -> Int -> Rectangle
-getSize width height =
+getBounds : Int -> Int -> Rectangle
+getBounds width height =
     Rectangle (Point 0 0) (Point width height)
 
 
-sizeHeight : Rectangle -> Int
-sizeHeight rectangle =
-    rectangle.bottomRight.y - rectangle.topLeft.y
-
-
-sizeWidth : Rectangle -> Int
-sizeWidth rectangle =
-    rectangle.bottomRight.x - rectangle.topLeft.x
+getSize : Rectangle -> Size
+getSize rectangle =
+    Size (rectangle.bottomRight.x - rectangle.topLeft.x) (rectangle.bottomRight.y - rectangle.topLeft.y)

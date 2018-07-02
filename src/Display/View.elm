@@ -31,35 +31,36 @@ flattenLayers layers =
     in
         case firstLayer of
             Just layer ->
-                Array.foldl combineLayer (emptyLayer (sizeWidth layer.size) (sizeHeight layer.size)) layers
+                let
+                    layerSize =
+                        getSize layer.bounds
+                in
+                    Array.foldl combineLayer (emptyLayer layerSize) layers
 
             Nothing ->
-                Layer initialSize (drawString "Error")
+                Layer initialBounds (drawString "Error")
 
 
 combineLayer : Layer -> Layer -> Layer
 combineLayer from to =
     let
-        toLayerWidth =
-            sizeWidth to.size
+        toLayerSize =
+            getSize to.bounds
 
-        fromLayerWidth =
-            sizeWidth from.size
-
-        fromLayerHeight =
-            sizeHeight from.size
+        fromLayerSize =
+            getSize from.bounds
 
         topLeftX =
-            from.size.topLeft.x
+            from.bounds.topLeft.x
 
         topLeftY =
-            from.size.topLeft.y
+            from.bounds.topLeft.y
 
         targetRows =
-            Debug.log "indices" (List.range topLeftY (topLeftY + fromLayerHeight - 1))
+            List.range topLeftY (topLeftY + fromLayerSize.height - 1)
 
         allIndices =
-            Debug.log "all indices" (List.concat (List.indexedMap (calculateIndices topLeftX fromLayerWidth toLayerWidth) targetRows))
+            List.concat (List.indexedMap (calculateIndices topLeftX fromLayerSize.width toLayerSize.width) targetRows)
     in
         List.foldl (replaceTile from) to allIndices
 
@@ -119,8 +120,11 @@ view model =
 renderLayer : Layer -> List (Html msg)
 renderLayer layer =
     let
+        size =
+            getSize layer.bounds
+
         lines =
-            List.range 0 (sizeHeight layer.size - 1)
+            List.range 0 (size.height - 1)
     in
         List.concatMap (renderLine layer) lines
 
@@ -128,11 +132,14 @@ renderLayer layer =
 renderLine : Layer -> Int -> List (Html msg)
 renderLine layer index =
     let
+        size =
+            getSize layer.bounds
+
         start =
-            index * (sizeWidth layer.size)
+            index * size.width
 
         end =
-            start + (sizeWidth layer.size)
+            start + size.width
 
         row =
             renderRow (Array.slice start end layer.tiles)
